@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "fitplans"
+version = "0.1.0"
+description = "FitPlans — Платформа продажи тренировочных планов"
+authors = ["KXNY4 <shakhdijarergali@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+Django = "^5.0.1"
+django-ninja = "^1.3.0"
+django-ninja-jwt = "^5.3.0"
+django-ninja-extra = "^0.30.6"
+pydantic = {extras = ["email"], version = "^2.12.5"}
+pydantic-settings = "^2.1.0"
+psycopg2-binary = "^2.9.9"
+redis = "^5.0.1"
+celery = "^5.3.6"
+boto3 = "^1.34.14"
+django-storages = "^1.14.2"
+Pillow = "^10.2.0"
+python-dotenv = "^1.0.0"
+argon2-cffi = "^23.1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-django = "^4.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.development"
+python_files = ["test_*.py", "*_test.py"]
+env = [
+    "NINJA_SKIP_REGISTRY=True",
+]
