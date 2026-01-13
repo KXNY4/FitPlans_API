@@ -19,6 +19,7 @@ class TestBecomeTrainer:
         from api.auth import create_tokens
 
         tokens = create_tokens(user)
+        client.cookies["access_token"] = tokens["access"]
 
         data = {
             "bio": "I am a pro trainer " * 10,
@@ -26,7 +27,7 @@ class TestBecomeTrainer:
             "specializations": ["Strength", "Cardio"],
         }
 
-        response = client.post("/trainers/become", json=data, headers={"Authorization": f"Bearer {tokens['access']}"})
+        response = client.post("/trainers/become", json=data)
 
         assert response.status_code == 201
         assert Trainer.objects.filter(user=user).exists()
@@ -40,11 +41,11 @@ class TestBecomeTrainer:
         from api.auth import create_tokens
 
         tokens = create_tokens(user)
+        client.cookies["access_token"] = tokens["access"]
 
         response = client.post(
             "/trainers/become",
             json={"bio": "test " * 20, "experience_years": 1, "specializations": ["Yoga"]},
-            headers={"Authorization": f"Bearer {tokens['access']}"},
         )
 
         assert response.status_code == 400
@@ -63,6 +64,7 @@ class TestTrainerReviews:
         from api.auth import create_tokens
 
         tokens = create_tokens(user)
+        client.cookies["access_token"] = tokens["access"]
 
         # Покупаем план тренера
         from apps.plans.tests.factories import PlanFactory
@@ -74,7 +76,6 @@ class TestTrainerReviews:
         response = client.post(
             f"/trainers/{trainer.id}/reviews",
             json={"rating": 5, "comment": "Great trainer!"},
-            headers={"Authorization": f"Bearer {tokens['access']}"},
         )
 
         # Если проверка покупки есть, тест упадет. Если нет - пройдет.
