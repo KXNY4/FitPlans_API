@@ -1,6 +1,6 @@
-from pydantic import BaseModel, ConfigDict, BeforeValidator
-from typing import Generic, TypeVar, List, Optional, Annotated, Any
-from datetime import datetime
+from typing import Annotated, Any, Generic, TypeVar
+
+from pydantic import BaseModel, BeforeValidator, ConfigDict
 
 T = TypeVar("T")
 
@@ -8,19 +8,20 @@ T = TypeVar("T")
 def validate_image(v: Any) -> str | None:
     if not v:
         return None
-    if hasattr(v, 'url'):
+    if hasattr(v, "url"):
         try:
             return v.url
         except ValueError:
             return None
     return str(v)
 
+
 FileUrl = Annotated[str | None, BeforeValidator(validate_image)]
 ImageStr = FileUrl
 
 
 def validate_queryset(v: Any) -> list[Any]:
-    if hasattr(v, 'all'):
+    if hasattr(v, "all"):
         return list(v.all())
     return v
 
@@ -34,15 +35,15 @@ class BaseSchema(BaseModel):
 
 class PaginatedResponse(BaseModel, Generic[T]):
     count: int
-    next: Optional[str] = None
-    previous: Optional[str] = None
-    results: List[T]
+    next: str | None = None
+    previous: str | None = None
+    results: list[T]
 
 
 class ErrorDetail(BaseModel):
     code: str
     message: str
-    details: Optional[dict] = None
+    details: dict | None = None
 
 
 class ErrorResponse(BaseModel):

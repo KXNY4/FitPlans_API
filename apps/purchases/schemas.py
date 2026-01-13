@@ -1,8 +1,8 @@
-from pydantic import BaseModel, Field, AliasPath
 from datetime import datetime
-from uuid import UUID
 from decimal import Decimal
-from typing import Optional
+from uuid import UUID
+
+from pydantic import AliasPath, Field
 
 from apps.common.schemas import BaseSchema, ImageStr
 from apps.plans.schemas import PlanListOut
@@ -10,6 +10,7 @@ from apps.plans.schemas import PlanListOut
 
 class PurchaseOut(BaseSchema):
     """Схема покупки."""
+
     id: UUID
     plan: PlanListOut
     price: Decimal
@@ -19,6 +20,7 @@ class PurchaseOut(BaseSchema):
 
 class PurchaseListOut(BaseSchema):
     """Схема для списка покупок."""
+
     id: UUID
     plan_id: UUID
     plan_title: str = Field(validation_alias=AliasPath("plan", "title"))

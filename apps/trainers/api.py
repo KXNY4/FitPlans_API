@@ -1,18 +1,20 @@
-from ninja import Router, Query
-from ninja.pagination import paginate
-from typing import List
 from uuid import UUID
 
-from api.auth import JWTAuth, OptionalJWTAuth
-from apps.trainers.models import Trainer, TrainerReview
-from apps.trainers.schemas import (
-    BecomeTrainerIn, TrainerOut, TrainerListOut,
-    TrainerReviewIn, TrainerReviewOut,
-)
-from apps.trainers.services import TrainerService
-from apps.trainers.selectors import TrainerSelector
-from apps.common.schemas import PaginatedResponse
+from ninja import Router
+from ninja.pagination import paginate
 
+from api.auth import JWTAuth
+from apps.trainers.models import TrainerReview
+from apps.trainers.schemas import (
+    BecomeTrainerIn,
+    TrainerListOut,
+    TrainerOut,
+    TrainerReviewIn,
+    TrainerReviewOut,
+    TrainerSearchListIn,
+)
+from apps.trainers.selectors import TrainerSelector
+from apps.trainers.services import TrainerService
 
 router = Router()
 
@@ -21,7 +23,7 @@ router = Router()
 def become_trainer(request, data: BecomeTrainerIn):
     """
     Стать тренером.
-    
+
     Создаёт профиль тренера для текущего пользователя.
     """
     trainer = TrainerService.create_trainer(
@@ -33,26 +35,20 @@ def become_trainer(request, data: BecomeTrainerIn):
     return 201, TrainerOut.model_validate(trainer)
 
 
-@router.get("/", response=List[TrainerListOut])
+@router.get("/", response=list[TrainerListOut])
 @paginate
-def list_trainers(
-    request,
-    search: str = None,
-    is_verified: bool = None,
-    min_rating: float = None,
-    ordering: str = "-rating",
-):
+def list_trainers(request, data: TrainerSearchListIn):
     """
     Список тренеров.
-    
+
     Фильтрация по верификации, рейтингу.
     Сортировка: rating, -rating, created_at, experience_years
     """
     return TrainerSelector.get_trainers_list(
-        search=search,
-        is_verified=is_verified,
-        min_rating=min_rating,
-        ordering=ordering,
+        search=data.search,
+        is_verified=data.is_verified,
+        min_rating=data.min_rating,
+        ordering=data.ordering,
     )
 
 
@@ -63,13 +59,11 @@ def get_trainer(request, trainer_id: UUID):
     return TrainerOut.model_validate(trainer)
 
 
-@router.get("/{trainer_id}/reviews", response=List[TrainerReviewOut])
+@router.get("/{trainer_id}/reviews", response=list[TrainerReviewOut])
 def get_trainer_reviews(request, trainer_id: UUID):
     """Отзывы о тренере."""
-    reviews = TrainerReview.objects.filter(
-        trainer_id=trainer_id
-    ).select_related("user").order_by("-created_at")
-    
+    reviews = TrainerReview.objects.filter(trainer_id=trainer_id).select_related("user").order_by("-created_at")
+
     return [TrainerReviewOut.model_validate(r) for r in reviews]
 
 
@@ -77,7 +71,7 @@ def get_trainer_reviews(request, trainer_id: UUID):
 def create_review(request, trainer_id: UUID, data: TrainerReviewIn):
     """
     Оставить отзыв о тренере.
-    
+
     Можно только если покупал план этого тренера.
     """
     review = TrainerService.create_review(

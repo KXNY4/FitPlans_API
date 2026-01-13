@@ -1,15 +1,13 @@
-from ninja import NinjaAPI
-from ninja.errors import ValidationError, HttpError
 from django.core.exceptions import ValidationError as DjangoValidationError
+from ninja import NinjaAPI
+from ninja.errors import HttpError, ValidationError
 
-from api.auth import JWTAuth, OptionalJWTAuth
-# from api.exceptions import api_exception_handler # Not implemented yet
-
-from apps.users.api import auth_router, users_router
-from apps.trainers.api import router as trainers_router
 from apps.plans.api import router as plans_router
 from apps.purchases.api import router as purchases_router
+from apps.trainers.api import router as trainers_router
 
+# from api.exceptions import api_exception_handler # Not implemented yet
+from apps.users.api import auth_router, users_router
 
 api = NinjaAPI(
     title="FitPlans API",
@@ -18,6 +16,7 @@ api = NinjaAPI(
     docs_url="/docs",  # Swagger UI
     openapi_url="/openapi.json",
 )
+
 
 # Глобальные обработчики ошибок
 @api.exception_handler(DjangoValidationError)
@@ -28,6 +27,7 @@ def django_validation_error_handler(request, exc):
         status=400,
     )
 
+
 @api.exception_handler(ValidationError)
 def validation_error_handler(request, exc):
     return api.create_response(
@@ -36,6 +36,7 @@ def validation_error_handler(request, exc):
         status=400,
     )
 
+
 @api.exception_handler(HttpError)
 def http_error_handler(request, exc):
     return api.create_response(
@@ -43,6 +44,7 @@ def http_error_handler(request, exc):
         {"error": {"code": exc.message, "message": str(exc)}},
         status=exc.status_code,
     )
+
 
 # Подключение роутеров
 api.add_router("/auth", auth_router, tags=["Auth"])

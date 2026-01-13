@@ -1,20 +1,24 @@
-from ninja.security import HttpBearer
-from ninja_jwt.tokens import RefreshToken
+from typing import Any
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from typing import Optional, Any
+from ninja.security import APIKeyCookie
+from ninja_jwt.tokens import RefreshToken
 
 User = get_user_model()
 
 
-class JWTAuth(HttpBearer):
+class JWTAuth(APIKeyCookie):
     """
-    Обязательная JWT аутентификация.
-    Использование: @router.get("/protected", auth=JWTAuth())
+    Обязательная JWT аутентификация через HttpOnly Cookies.
     """
-    
-    def authenticate(self, request, token: str) -> Optional[Any]:
+
+    param_name = settings.AUTH_COOKIE
+
+    def authenticate(self, request, token: str) -> Any | None:
         try:
             from ninja_jwt.tokens import AccessToken
+
             access_token = AccessToken(token)
             user_id = access_token["user_id"]
             user = User.objects.get(id=user_id)
@@ -25,26 +29,19 @@ class JWTAuth(HttpBearer):
             return None
 
 
-class OptionalJWTAuth(HttpBearer):
+class OptionalJWTAuth(APIKeyCookie):
     """
-    Опциональная JWT аутентификация.
-    Возвращает "Anonymous" если токен отсутствует.
-    Возвращает User если токен валиден.
-    Возвращает None (401) если токен невалиден.
+    Опциональная JWT аутентификация через Cookies.
     """
-    
-    def __call__(self, request):
-        headers = request.headers
-        auth_value = headers.get(self.header)
-        if not auth_value:
-            return "Anonymous"
-        return super().__call__(request)
-    
-    def authenticate(self, request, token: str) -> Optional[Any]:
+
+    param_name = settings.AUTH_COOKIE
+
+    def authenticate(self, request, token: str) -> Any | None:
         if not token:
             return "Anonymous"
         try:
             from ninja_jwt.tokens import AccessToken
+
             access_token = AccessToken(token)
             user_id = access_token["user_id"]
             return User.objects.get(id=user_id)

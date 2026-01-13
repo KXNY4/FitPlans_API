@@ -1,16 +1,17 @@
+import random
+from decimal import Decimal
+
 import factory
 from factory.django import DjangoModelFactory
-from decimal import Decimal
-import random
 
-from apps.plans.models import Plan, Category, PlanFile
+from apps.plans.models import Category, Plan, PlanFile
 from apps.trainers.tests.factories import TrainerFactory
 
 
 class CategoryFactory(DjangoModelFactory):
     class Meta:
         model = Category
-    
+
     name = factory.Sequence(lambda n: f"Category {n}")
     slug = factory.LazyAttribute(lambda o: o.name.lower().replace(" ", "-"))
 
@@ -18,7 +19,7 @@ class CategoryFactory(DjangoModelFactory):
 class PlanFactory(DjangoModelFactory):
     class Meta:
         model = Plan
-    
+
     trainer = factory.SubFactory(TrainerFactory)
     category = factory.SubFactory(CategoryFactory)
     title = factory.Faker("sentence", nb_words=4)
@@ -33,7 +34,7 @@ class PlanFactory(DjangoModelFactory):
 class PlanFileFactory(DjangoModelFactory):
     class Meta:
         model = PlanFile
-    
+
     plan = factory.SubFactory(PlanFactory)
     title = factory.Faker("sentence", nb_words=3)
     file = factory.django.FileField(filename="test.pdf")
